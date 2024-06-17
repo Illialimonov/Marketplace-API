@@ -1,1 +1,1 @@
-web: java $JAVA_OPTS -cp target/classes:target/dependency/* Marketplace-API
+web: java -jar -Dserver.port=$PORT Marketplace_API.jar
