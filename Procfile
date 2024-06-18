@@ -1,1 +1,1 @@
-web: java -jar -Dserver.port=$PORT Marketplace_API.jar
+web: java -jar target/Marketplace-API-1.0.0-SNAPSHOT.jar
