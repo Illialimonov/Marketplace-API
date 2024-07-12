@@ -1,11 +1,18 @@
-# Use the Eclipse Temurin image as the base image
-FROM eclipse-temurin:17-jdk-alpine
-
-# Set the working directory in the container
+FROM openjdk:21-jdk-slim-buster
+# Start with a base image containing Java runtime
+# Set the working directory inside the container
 WORKDIR /app
 
-# Copy the JAR file from the target directory to the container
-COPY target/Marketplace-API.jar app.jar
+# Copy the packaged JAR file into the container
+COPY target/Marketplace-API-0.0.1-SNAPSHOT.jar /app/Marketplace-API-0.0.1-SNAPSHOT.jar
 
-# Specify the command to run the application
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Environment variables
+ENV SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/mydb
+ENV SPRING_DATASOURCE_USERNAME=user
+ENV SPRING_DATASOURCE_PASSWORD=password
+
+# Expose the port on which your Spring Boot application runs
+EXPOSE 8080
+
+# Command to run the Spring Boot application
+ENTRYPOINT ["java","-jar","Marketplace-API-0.0.1-SNAPSHOT.jar"]

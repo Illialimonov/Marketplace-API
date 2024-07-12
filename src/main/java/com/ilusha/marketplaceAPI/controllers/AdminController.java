@@ -14,16 +14,14 @@ public class AdminController {
     private final UserService userService;
 
 
-
-
     @GetMapping("/adminuser")
     @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')")
-    public String hiUserorAdmin(){
+    public String hiUserorAdmin() {
         return "Your role is user or admin";
     }
 
     @GetMapping("/none")
-    public String hi(){
+    public String hi() {
         System.out.println(userService.getCurrentUser().getRole());
         return "none";
     }

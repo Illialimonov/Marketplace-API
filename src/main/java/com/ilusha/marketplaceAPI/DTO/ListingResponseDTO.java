@@ -11,6 +11,7 @@ public class ListingResponseDTO {
     private Double price;
     private String location;
     private String description;
+    private String photo_ref;
 
     // Getters and setters
 }

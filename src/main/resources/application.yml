@@ -1,0 +1,19 @@
+application:
+  bucket:
+    name: marketplace-api-storage
+
+
+spring:
+  aws:
+    accessKey: AKIAZI2LCLKC7MVQ72VB
+    secretKey: 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
+    region: us-east-2
+
+
+
+  servlet:
+    multipart:
+      enabled: true
+      file-size-threshold: 2MB
+      max-file-size: 5MB
+      max-request-size: 10MB
