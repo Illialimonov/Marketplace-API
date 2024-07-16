@@ -23,7 +23,7 @@ public class RefreshTokenService {
         RefreshToken refreshToken = RefreshToken.builder()
                 .owner(userRepository.findByEmail(email).orElseThrow())
                 .token(UUID.randomUUID().toString())
-                .expiryDate(new Date(System.currentTimeMillis()+172800000)) // set expiry of refresh token to 10 minutes - you can configure it application.properties file
+                .expiryDate(new Date(System.currentTimeMillis()+86400000)) // set expiry of refresh token to 10 minutes - you can configure it application.properties file
                 .build();
         return refreshTokenRepository.save(refreshToken);
     }

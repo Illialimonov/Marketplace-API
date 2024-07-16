@@ -103,7 +103,7 @@ public class ListingController {
     }
 
 
-    @PostMapping("/delete")
+    @DeleteMapping("/delete")
     public ResponseEntity<HttpStatus> deleteListing(@RequestBody SingleListingDTO deleteListingDTO) {
         listingService.deleteListing(deleteListingDTO.getListing_id());
         return ResponseEntity.ok(HttpStatus.OK);
