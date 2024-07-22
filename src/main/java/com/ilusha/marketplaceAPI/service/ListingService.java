@@ -51,7 +51,8 @@ public class ListingService {
     }
 
     private String converToURLEncoded(String s) {
-        return URLEncoder.encode(s, StandardCharsets.UTF_8).replace("+", "%20");
+        String url = URLEncoder.encode(s, StandardCharsets.UTF_8).replace("+", "%20");
+        return "https://marketplace-api-storage.s3.us-east-2.amazonaws.com/" + url;
     }
 
     private boolean categoryExists(Listing listing) {

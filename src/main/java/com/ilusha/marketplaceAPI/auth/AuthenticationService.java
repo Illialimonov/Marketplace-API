@@ -7,6 +7,7 @@ import com.ilusha.marketplaceAPI.logging.LogExecution;
 import com.ilusha.marketplaceAPI.models.PasswordResetTokens;
 import com.ilusha.marketplaceAPI.models.RefreshToken;
 import com.ilusha.marketplaceAPI.repository.PasswordResetTokensRepository;
+import com.ilusha.marketplaceAPI.repository.RefreshTokenRepository;
 import com.ilusha.marketplaceAPI.repository.UserRepository;
 import com.ilusha.marketplaceAPI.models.User;
 import com.ilusha.marketplaceAPI.service.RefreshTokenService;
@@ -37,6 +38,7 @@ public class AuthenticationService {
     private final PasswordResetTokensRepository passwordResetTokensRepository;
     private final SendEmailService sendEmailService;
     private final RefreshTokenService refreshTokenService;
+    private final RefreshTokenRepository refreshTokenRepository;
 
 
     @LogExecution
@@ -75,6 +77,9 @@ public class AuthenticationService {
 
             var jwtToken = jwtService.generateToken(user);
 
+            refreshTokenRepository.deleteByUser_id(user.getId());
+
+            //TODO
             RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getEmail());
 
 
