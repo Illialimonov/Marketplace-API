@@ -22,9 +22,13 @@ public class UserService {
 
 
     public User getCurrentUser() {
+        try{
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserDetails userDetails = (User) authentication.getPrincipal();
-        return userRepository.findByEmail(userDetails.getUsername()).orElseThrow();
+        return userRepository.findByEmail(userDetails.getUsername()).orElseThrow();}
+        catch (RuntimeException e){
+            throw new ClassCastException("Not user found!");
+        }
     }
 
     public void adminCall() {

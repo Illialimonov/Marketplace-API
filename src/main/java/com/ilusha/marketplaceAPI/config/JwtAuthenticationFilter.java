@@ -28,11 +28,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     @NonNull HttpServletResponse response,
                                     @NonNull FilterChain filterChain) throws ServletException, IOException {
 
-        if (request.getServletPath().startsWith("/swagger-ui") || request.getServletPath().startsWith("/v3/api-docs")) {
+        if (request.getServletPath().startsWith("/swagger-ui") || request.getServletPath().startsWith("/v3/api-docs") || request.getServletPath().startsWith("/listing/search") || request.getServletPath().equals("/listing/")) {
             filterChain.doFilter(request, response);
             System.out.println("getting bypassed");
             return;
         }
+
+
 
         String contentType = request.getContentType();
         System.out.println("Content-Type: " + contentType);

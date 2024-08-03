@@ -6,6 +6,7 @@ import com.ilusha.marketplaceAPI.config.JwtService;
 import com.ilusha.marketplaceAPI.models.RefreshToken;
 import com.ilusha.marketplaceAPI.models.User;
 import com.ilusha.marketplaceAPI.service.RefreshTokenService;
+import com.ilusha.marketplaceAPI.service.UserService;
 import com.ilusha.marketplaceAPI.util.AuthError;
 import com.ilusha.marketplaceAPI.util.AuthExceptionResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -17,6 +18,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.Optional;
 
 
@@ -29,12 +31,13 @@ public class AuthController {
     private final AuthenticationService service;
     private final RefreshTokenService refreshTokenService;
     private final JwtService jwtService;
+    private final UserService userService;
 
 
     @PostMapping("/register")
-    public ResponseEntity<AuthenticationResponse> register(@Valid @RequestBody RegisterRequest request) {
-        return ResponseEntity.ok(service.register(request));
-
+    public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
+        service.register(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body("Account successfully created");
     }
 
     @Operation(summary = "send the code to email to change the password. Then insert to /changepassword below.")
@@ -82,17 +85,24 @@ public class AuthController {
         }
 
         // Get the user information associated with the refresh token
-        User userInfo = refreshToken.getOwner();
+        User user = refreshToken.getOwner();
         // Generate a new access token using the user's username
-        String accessToken = jwtService.generateToken(userInfo);
+        String accessToken = jwtService.generateToken(user);
+
 
         // Create and return the response containing the new access token and the refresh token
-        AuthenticationResponse response = AuthenticationResponse.builder()
-                .access_token(accessToken)
-                .refresh_token(refreshTokenRequestDTO.getToken())
-                .build();
+        HashMap<String,String> userDetails = new HashMap<>();
+        userDetails.put("id", user.getId().toString());
+        userDetails.put("email", user.getEmail());
+        userDetails.put("firstName",user.getFirstName());
+        userDetails.put("lastName",user.getLastName());
+        userDetails.put("role",user.getRole());
 
-        return response;
+        return AuthenticationResponse.builder()
+                .access_token(accessToken)
+                .refresh_token(refreshToken.getToken())
+                .userDetails(userDetails)
+                .build();
     }
 
 

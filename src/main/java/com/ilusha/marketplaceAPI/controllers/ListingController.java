@@ -27,6 +27,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -39,6 +41,9 @@ public class ListingController {
     private final ListingRepository listingRepository;
     private final UserService userService;
     private final SavedListingRepository savedListingRepository;
+
+    //TODO delete from favorite when deleteing object
+    //TODO delete frm favorite in general
 
 
     @LogExecution
@@ -58,16 +63,37 @@ public class ListingController {
 
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
+//    @LogExecution
+//    @PostMapping(value = "/create")
+//    public ResponseEntity<?> createListing(@RequestPart("files") List<MultipartFile> files, @RequestPart("listing_data") String listingData) {
+//        CreateListingDTO listingDTO;
+//        try {
+//            ObjectMapper objectMapper = new ObjectMapper();
+//            listingDTO = objectMapper.readValue(listingData, CreateListingDTO.class);
+//        } catch (IOException e) {
+//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid listing data");
+//        }
+//
+//        // Convert DTO to entity and add listing
+//        Listing listingToAdd = convertToListing(listingDTO);
+//        listingService.addListing(listingToAdd, files);
+//
+//        return ResponseEntity.status(HttpStatus.CREATED).build();
+//    }
+
+
+
 
     @Operation(summary = "return all listings that meet the criteria")
     @GetMapping("/search")
-    public AllListingResponse searchListing(@RequestBody ListingSearchCriteriaDTO listingSearchCriteriaDTO) {
-        return new AllListingResponse(listingRepository.findAll().stream().filter(listing -> listingService.performFilter(listing, listingSearchCriteriaDTO)).map(this::convertToAllListingResponseDTO).collect(Collectors.toList()));
+    public AllListingResponse searchListing(@RequestParam(required = false) String listingName,
+                                            @RequestParam(required = false) List<String> categories,
+                                            @RequestParam(required = false) Double minPrice,
+                                            @RequestParam(required = false) Double maxPrice)
+            {
+        return new AllListingResponse(listingRepository.findAll().stream().filter(listing -> listingService.performFilter(listing, listingName, categories, minPrice, maxPrice)).map(this::convertToAllListingResponseDTO).collect(Collectors.toList()));
     }
 
-    //TODO
-    //make sure you dont see your own listings
-    //make sure you cant add to favorites your ow listings.
 
     @PostMapping("/putToFavorite")
     public ResponseEntity<HttpStatus> putToFavorite(@RequestBody SingleListingDTO singleListingDTO) {
@@ -109,6 +135,12 @@ public class ListingController {
         return ResponseEntity.ok(HttpStatus.OK);
     }
 
+    @DeleteMapping("/deleteFromFavorite")
+    public ResponseEntity<HttpStatus> deleteListingFromFavorite(@RequestBody SingleListingDTO deleteListingDTO) {
+        listingService.deleteListingFromFavorite(deleteListingDTO.getListing_id());
+        return ResponseEntity.ok(HttpStatus.OK);
+    }
+
     @ExceptionHandler
     private ResponseEntity<ListingExceptionResponse> handleException(ListingOperationException e) {
         ListingExceptionResponse response = new ListingExceptionResponse(e.getMessage(), System.currentTimeMillis());
@@ -134,14 +166,26 @@ public class ListingController {
     private AllListingResponseDTO convertToAllListingResponseDTO(Listing listing) {
         AllListingResponseDTO allListingResponseDTO = modelMapper.map(listing, AllListingResponseDTO.class);
 
-        allListingResponseDTO.setContactInfo(listing.getOwner().getEmail());
+
+        HashMap<String,String> sellerDetails = new HashMap<>();
+        sellerDetails.put("sellerFirstName", listing.getOwner().getFirstName());
+        sellerDetails.put("sellerLastName", listing.getOwner().getLastName());
+        sellerDetails.put("sellerEmail", listing.getOwner().getEmail());
+
+        allListingResponseDTO.setSellerDetails(sellerDetails);
+
         return allListingResponseDTO;
     }
 
     private AllListingResponseDTO convertToAllSavedListingResponseDTO(SavedListing savedListing) {
         Listing listing = listingRepository.findById(savedListing.getListing().getListing_id()).orElseThrow();
         AllListingResponseDTO allListingResponseDTO = modelMapper.map(listing, AllListingResponseDTO.class);
-        allListingResponseDTO.setContactInfo(listing.getOwner().getEmail());
+        HashMap<String,String> sellerDetails = new HashMap<>();
+        sellerDetails.put("sellerFirstName", listing.getOwner().getFirstName());
+        sellerDetails.put("sellerLastName", listing.getOwner().getLastName());
+        sellerDetails.put("sellerEmail", listing.getOwner().getEmail());
+
+        allListingResponseDTO.setSellerDetails(sellerDetails);
         return allListingResponseDTO;
 
 

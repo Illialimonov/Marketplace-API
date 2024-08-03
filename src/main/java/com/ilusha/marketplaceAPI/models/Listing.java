@@ -49,4 +49,10 @@ public class Listing {
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private User owner;
 
+    //TODO
+
+//    @OneToMany
+//    @JoinColumn(name = "user_id", referencedColumnName = "id")
+//    private List<ListingPicture> photos;
+
 }

@@ -34,6 +34,21 @@ public class ListingService {
     public final StorageService storageService;
 
 
+//    public void addListing(Listing listing, MultipartFile file) {
+//
+//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//        UserDetails userDetails = (User) authentication.getPrincipal();
+//        System.out.println(userDetails);
+//        listing.setOwner(userRepository.findByEmail(userDetails.getUsername()).orElseThrow());
+//
+//
+//        listing.setListing_date(LocalDateTime.now());
+//        listing.setPhoto_ref(converToURLEncoded(storageService.uploadFile(file)));
+//
+//        if (categoryExists(listing)) listingRepository.save(listing);
+//
+//
+//    }
     public void addListing(Listing listing, MultipartFile file) {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -47,8 +62,8 @@ public class ListingService {
 
         if (categoryExists(listing)) listingRepository.save(listing);
 
-
     }
+
 
     private String converToURLEncoded(String s) {
         String url = URLEncoder.encode(s, StandardCharsets.UTF_8).replace("+", "%20");
@@ -68,8 +83,15 @@ public class ListingService {
     public void deleteListing(int id) {
         if (userOwnsListing(id)) {
             storageService.deleteFile(listingRepository.findById(id).orElseThrow().getPhoto_ref());
+            deleteListingFromFavorite(id);
             listingRepository.deleteByListing_id(id);
         }
+    }
+
+    public void deleteListingFromFavorite(int id) {
+        storageService.deleteFile(listingRepository.findById(id).orElseThrow().getPhoto_ref());
+        savedListingRepository.deleteByListing_idFromSaved(id);
+
     }
 
     public void putToFavorite(SavedListing singleListing) {
@@ -105,29 +127,29 @@ public class ListingService {
         categories.add("Health and Beauty");
         categories.add("Sports and Outdoors");
         categories.add("Toys and Games");
-        categories.add("other");
+        categories.add("Other");
     }
 
 
-    public boolean performFilter(Listing listing, ListingSearchCriteriaDTO criteria) {
+    public boolean performFilter(Listing listing, String listingName, List<String> categories, Double minPrice, Double maxPrice) {
         boolean priceInRange = true;
         boolean nameMatches = true;
         boolean categoryMatches = true;
 
-        if (criteria.getMinPrice() != null) {
-            priceInRange = listing.getPrice() >= criteria.getMinPrice().doubleValue();
+        if (minPrice != null) {
+            priceInRange = listing.getPrice() >= minPrice;
         }
-        if (criteria.getMaxPrice() != null) {
-            priceInRange = priceInRange && listing.getPrice() <= criteria.getMaxPrice().doubleValue();
+        if (maxPrice != null) {
+            priceInRange = priceInRange && listing.getPrice() <= maxPrice;
         }
-        if (criteria.getName() != null) {
-            nameMatches = listing.getName().startsWith(criteria.getName());
+        if (listingName != null) {
+            nameMatches = listing.getName().startsWith(listingName);
         }
-        if (criteria.getCategory() != null) {
-            categoryMatches = listing.getCategory().startsWith(criteria.getCategory());
+        if (categories != null) {
+            categoryMatches = categories.contains(listing.getCategory());
         }
 
-        if (listing.getOwner().getId().equals(userService.getCurrentUser().getId())) return false;
+//        if (listing.getOwner().getId().equals(userService.getCurrentUser().getId())) return false;
 
         return priceInRange && nameMatches && categoryMatches;
 

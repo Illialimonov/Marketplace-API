@@ -25,9 +25,6 @@ public class ApplicationConfig {
 
     }
 
-    //hi
-
-    //lol
 
     @Bean
     public AuthenticationProvider authenticationProvider() {

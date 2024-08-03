@@ -11,8 +11,11 @@ import com.ilusha.marketplaceAPI.repository.RefreshTokenRepository;
 import com.ilusha.marketplaceAPI.repository.UserRepository;
 import com.ilusha.marketplaceAPI.models.User;
 import com.ilusha.marketplaceAPI.service.RefreshTokenService;
+import com.ilusha.marketplaceAPI.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -21,7 +24,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Random;
 
 @Service
@@ -39,10 +44,11 @@ public class AuthenticationService {
     private final SendEmailService sendEmailService;
     private final RefreshTokenService refreshTokenService;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final UserService userService;
 
 
     @LogExecution
-    public AuthenticationResponse register(RegisterRequest input) {
+    public void register(RegisterRequest input) {
     User user = new User();
             user.setFirstName(input.getFirstName());
             user.setLastName(input.getLastName());
@@ -51,9 +57,6 @@ public class AuthenticationService {
             user.setRole("USER");
 
         userRepository.save(user);
-        var jwtToken = jwtService.generateToken(user);
-
-        return AuthenticationResponse.builder().access_token(jwtToken).build();
     }
 
     public void sendPassToken(String email){
@@ -79,11 +82,22 @@ public class AuthenticationService {
 
             refreshTokenRepository.deleteByUser_id(user.getId());
 
-            //TODO
             RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getEmail());
 
 
-            return AuthenticationResponse.builder().access_token(jwtToken).refresh_token(refreshToken.getToken()).build();
+            HashMap<String,String> userDetails = new HashMap<>();
+            userDetails.put("id", user.getId().toString());
+            userDetails.put("email", user.getEmail());
+            userDetails.put("firstName",user.getFirstName());
+            userDetails.put("lastName",user.getLastName());
+            userDetails.put("role",user.getRole());
+
+            return AuthenticationResponse.builder()
+                    .access_token(jwtToken)
+                    .refresh_token(refreshToken.getToken())
+                    .userDetails(userDetails)
+                    .build();
+
         } else {
             throw new UsernameNotFoundException("invalid user request..!!");
         }
